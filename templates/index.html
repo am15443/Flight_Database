@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flight Search</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    input, button { padding: 8px; margin: 4px; font-size: 14px; }
+    button { cursor: pointer; background: black; color: white; border: none; border-radius: 4px; }
+    .flight { border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin: 8px 0; cursor: pointer; }
+    .flight:hover { background: #f9f9f9; }
+    .detail { background: #f0f0f0; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h2>Flight Search</h2>
+  <form method="POST">
+    <input name="origin" placeholder="Origin (e.g. JFK)" required>
+    <input name="dest" placeholder="Destination (e.g. LAX)" required>
+    <input type="date" name="date_from" required>
+    <input type="date" name="date_to" required>
+    <button type="submit">Search Flights</button>
+  </form>
+  {% if searched and flights|length == 0 %}
+    <p>No flights found.</p>
+  {% endif %}
+  {% for f in flights %}
+  <div class="flight" onclick="loadDetail('{{f[0]}}','{{f[1]}}')">
+    <strong>{{f[0]}}</strong> — {{f[2]}} to {{f[3]}} &nbsp;|&nbsp;
+    Departs {{f[4]}} &nbsp;|&nbsp; {{f[1]}} &nbsp;|&nbsp; {{f[5]}}
+    <div id="detail-{{f[0]}}-{{f[1]|string|replace('-','')}}"></div>
+  </div>
+  {% endfor %}
+  <script>
+    function loadDetail(fn, date) {
+      const id = 'detail-' + fn + '-' + date.replace(/-/g,'');
+      const el = document.getElementById(id);
+      if (el.innerHTML) { el.innerHTML = ''; return; }
+      fetch('/flight/' + fn + '/' + date)
+        .then(r => r.json())
+        .then(d => {
+          el.innerHTML = '<div class="detail">Capacity: ' + d.capacity +
+            ' &nbsp;|&nbsp; Booked: ' + d.booked +
+            ' &nbsp;|&nbsp; Available seats: ' + d.available + '</div>';
+        });
+    }
+  </script>
+</body>
+</html>
